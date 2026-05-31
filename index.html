@@ -155,10 +155,11 @@
             <div class="name">My Closet</div>
           </div>
         </div>
-        <div class="badge">GitHub Pages ready · Add to Home ScreenOffline clothing catalog · data stays on this device</div>
+        <div class="badge">Offline clothing catalog · data stays on this device / 離線衣物目錄 · 資料只存在呢部裝置</div>
         <div>
           <h1>Clothing Storage</h1>
-          <p class="sub">拍照、記箱號、睇 catalog。呢個版本係單一 HTML，無需伺服器，適合自己同朋友各自喺手機上離線用。資料只會存在打開呢個檔案嘅瀏覽器入面。</p>
+          <p class="sub">拍照、記箱號、睇 catalog。呢個係單一 HTML app，無需伺服器。每部裝置只會保存自己嘅資料，所以可以私用，亦可以畀朋友各自用。<br />
+                  Take photos, record box numbers, and browse a visual catalog. This is a single-file HTML app with no server. Each device keeps its own copy, so it works for private use or separate copies for friends.</p>
         </div>
         <div class="stats">
           <div class="stat"><strong id="statItems">0</strong><span>Items</span></div>
@@ -724,7 +725,7 @@
       } catch (err) {
         const msg = String(err && err.name || '') === 'QuotaExceededError' || String(err && err.message || '').toLowerCase().includes('quota')
           ? '匯入失敗：相片資料太大，呢個裝置嘅瀏覽器儲存空間唔夠。'
-          : '匯入失敗：請確認係由呢個 app 匯出嘅 JSON，或舊版 JSON 包含 items / data 陣列。';
+          : '匯入失敗：檔案格式唔啱，或者相片資料太大。請確認係由呢個 app 匯出嘅 JSON；舊版檔案可以係完整陣列、items 或 data 陣列。 / Import failed: the file may be invalid, too old, or too large for this browser. Please use an export from this app.';
         setMessage(msg);
       }
     }
