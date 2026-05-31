@@ -155,7 +155,7 @@
             <div class="name">My Closet</div>
           </div>
         </div>
-        <div class="badge">Offline clothing catalog · data stays on this device</div>
+        <div class="badge">GitHub Pages ready · Add to Home ScreenOffline clothing catalog · data stays on this device</div>
         <div>
           <h1>Clothing Storage</h1>
           <p class="sub">拍照、記箱號、睇 catalog。呢個版本係單一 HTML，無需伺服器，適合自己同朋友各自喺手機上離線用。資料只會存在打開呢個檔案嘅瀏覽器入面。</p>
@@ -796,6 +796,14 @@
     }
 
     init();
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
   </script>
 </body>
 </html>
