@@ -419,14 +419,7 @@
       el.autoHint.textContent = '自動建議：' + category + ' · ' + box;
     }
 
-    async function compressImage(file) {
-      const dataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = () => reject(reader.error || new Error('read failed'));
-        reader.readAsDataURL(file);
-      });
-
+    async function resizeDataUrl(dataUrl, maxSize, quality) {
       const image = await new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
@@ -434,7 +427,6 @@
         img.src = dataUrl;
       });
 
-      const maxSize = 1200;
       const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
       const width = Math.max(1, Math.round(image.width * scale));
       const height = Math.max(1, Math.round(image.height * scale));
@@ -446,7 +438,23 @@
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, width, height);
       ctx.drawImage(image, 0, 0, width, height);
-      return canvas.toDataURL('image/jpeg', 0.8);
+      return canvas.toDataURL('image/jpeg', quality);
+    }
+
+    async function compressImage(file) {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(reader.error || new Error('read failed'));
+        reader.readAsDataURL(file);
+      });
+      return resizeDataUrl(dataUrl, 720, 0.65);
+    }
+
+    async function compressImportedPhoto(photo) {
+      if (!photo || !String(photo).startsWith('data:image')) return photo || '';
+      if (String(photo).length < 200000) return photo;
+      return resizeDataUrl(photo, 640, 0.58);
     }
 
     function loadItems() {
@@ -701,7 +709,12 @@
         const payload = JSON.parse(text);
         const sourceItems = Array.isArray(payload) ? payload : Array.isArray(payload?.items) ? payload.items : Array.isArray(payload?.data) ? payload.data : null;
         if (!sourceItems) throw new Error('bad file');
-        const imported = sourceItems.map(normalizeItem);
+        const imported = [];
+        for (const raw of sourceItems) {
+          const item = normalizeItem(raw);
+          item.photo = await compressImportedPhoto(item.photo);
+          imported.push(item);
+        }
         const byId = new Map(STATE.items.map((item) => [item.id, item]));
         imported.forEach((item) => byId.set(item.id, item));
         STATE.items = Array.from(byId.values()).sort((a, b) => b.updatedAt - a.updatedAt);
@@ -709,7 +722,10 @@
         setMessage(`已匯入備份：${imported.length} 件。`);
         render();
       } catch (err) {
-        setMessage('匯入失敗：請確認係由呢個 app 匯出嘅 JSON，或舊版 JSON 包含 items / data 陣列。');
+        const msg = String(err && err.name || '') === 'QuotaExceededError' || String(err && err.message || '').toLowerCase().includes('quota')
+          ? '匯入失敗：相片資料太大，呢個裝置嘅瀏覽器儲存空間唔夠。'
+          : '匯入失敗：請確認係由呢個 app 匯出嘅 JSON，或舊版 JSON 包含 items / data 陣列。';
+        setMessage(msg);
       }
     }
 
